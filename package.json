@@ -18,6 +18,7 @@
 		"dotenv": "^16.0.3"
 	},
 	"devDependencies": {
+		"@total-typescript/ts-reset": "^0.3.7",
 		"@tsconfig/node-lts-strictest": "^18.12.1",
 		"@types/node": "^18.14.5",
 		"@typescript-eslint/eslint-plugin": "^5.54.0",

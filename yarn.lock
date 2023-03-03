@@ -353,6 +353,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@total-typescript/ts-reset@npm:^0.3.7":
+  version: 0.3.7
+  resolution: "@total-typescript/ts-reset@npm:0.3.7"
+  checksum: 81e05fca49cff25f36edd5d1d219eaecf42d857349cf4b6e7b37f2ffb719b96130681e4c701bcfc6efef4e07a17ba2548addd9adad77adc03cf8055c6e2a83b6
+  languageName: node
+  linkType: hard
+
 "@tsconfig/node-lts-strictest@npm:^18.12.1":
   version: 18.12.1
   resolution: "@tsconfig/node-lts-strictest@npm:18.12.1"
@@ -1018,6 +1025,7 @@ __metadata:
     "@sapphire/decorators": ^6.0.0
     "@sapphire/framework": ^4.2.0
     "@sapphire/plugin-editable-commands": ^3.0.0
+    "@total-typescript/ts-reset": ^0.3.7
     "@tsconfig/node-lts-strictest": ^18.12.1
     "@types/node": ^18.14.5
     "@typescript-eslint/eslint-plugin": ^5.54.0
