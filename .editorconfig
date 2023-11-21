@@ -8,3 +8,7 @@ indent_size = 4
 
 [*.{ts,js,json,yml}]
 charset = utf-8
+
+[*.yml]
+indent_style = space
+identi_size = 2

@@ -11,26 +11,30 @@
 		"lint": "eslint . --ext .ts"
 	},
 	"dependencies": {
-		"@sapphire/decorators": "^6.0.0",
-		"@sapphire/framework": "^4.2.0",
-		"@sapphire/plugin-editable-commands": "^3.0.0",
-		"discord.js": "^14.7.1",
-		"dotenv": "^16.0.3"
+		"@keyv/sqlite": "^3.6.6",
+		"@sapphire/decorators": "^6.0.2",
+		"@sapphire/framework": "^4.8.2",
+		"@sapphire/plugin-editable-commands": "^3.1.0",
+		"@sapphire/plugin-subcommands": "^5.1.0",
+		"discord.js": "^14.14.1",
+		"dotenv": "^16.3.1",
+		"keyv": "^4.5.4"
 	},
 	"devDependencies": {
-		"@total-typescript/ts-reset": "^0.3.7",
-		"@tsconfig/node-lts-strictest": "^18.12.1",
-		"@types/node": "^18.14.5",
-		"@typescript-eslint/eslint-plugin": "^5.54.0",
-		"@typescript-eslint/parser": "^5.54.0",
-		"eslint": "^8.35.0",
+		"@total-typescript/ts-reset": "^0.5.1",
+		"@tsconfig/node-lts": "^18.12.5",
+		"@tsconfig/strictest": "^2.0.2",
+		"@types/node": "^20.9.3",
+		"@typescript-eslint/eslint-plugin": "^6.12.0",
+		"@typescript-eslint/parser": "^6.12.0",
+		"eslint": "^8.54.0",
 		"eslint-config-airbnb-base": "^15.0.0",
-		"eslint-config-airbnb-typescript": "^17.0.0",
-		"eslint-plugin-import": "^2.27.5",
-		"nodemon": "^2.0.21",
-		"rimraf": "^4.2.0",
-		"ts-node": "^10.9.1",
-		"typescript": "^4.9.5"
+		"eslint-config-airbnb-typescript": "^17.1.0",
+		"eslint-plugin-import": "^2.29.0",
+		"nodemon": "^3.0.1",
+		"rimraf": "^5.0.5",
+		"ts-node": "git@github.com:TypeStrong/ts-node.git#commit=c06cbe7d83b5585bb24f9963c42ce13eadd2202f",
+		"typescript": "^5.3.2"
 	},
-	"packageManager": "yarn@3.4.1"
+	"packageManager": "yarn@4.0.2"
 }
