@@ -33,7 +33,6 @@
 		"eslint-plugin-import": "^2.29.0",
 		"nodemon": "^3.0.1",
 		"rimraf": "^5.0.5",
-		"ts-node": "git@github.com:TypeStrong/ts-node.git#commit=c06cbe7d83b5585bb24f9963c42ce13eadd2202f",
 		"typescript": "^5.3.2"
 	},
 	"packageManager": "yarn@4.0.2"
