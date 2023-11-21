@@ -10,4 +10,5 @@ node_modules
 
 build/
 .env
-data/
+data/*
+!data/.keep
