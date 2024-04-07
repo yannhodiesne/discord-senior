@@ -4,12 +4,11 @@ import type { ApplicationCommandRegistry } from '@sapphire/framework';
 import { PermissionFlagsBits, userMention } from 'discord.js';
 
 import db from '../database';
-import type { SecretSantaUser, SecretSantaList, SecretSantaMappings, SecretSantaDramas, SecretSantaDrama } from '../types/secretsanta';
+import type { SecretSantaUser, SecretSantaList, SecretSantaMappings, SecretSantaConflicts, SecretSantaDrama } from '../types/secretsanta';
 
 const Data = {
 	list: 'secretsanta.list',
-	dramas: 'secretsanta.dramas',
-	mappings: 'secretsanta.mappings',
+	conflicts: 'secretsanta.conflicts',
 	generated: 'secretsanta.generated',
 };
 
@@ -20,7 +19,7 @@ const Data = {
 	subcommands: [
 		{ name: 'generate', chatInputRun: 'chatInputGenerate' },
 		{ name: 'list', chatInputRun: 'chatInputList' },
-		{ name: 'dramas', chatInputRun: 'chatInputDramas' },
+		{ name: 'conflicts', chatInputRun: 'chatInputConflicts' },
 		{ name: 'delete', chatInputRun: 'chatInputDelete' },
 	],
 })
@@ -38,19 +37,19 @@ export class SecretSantaAdminCommand extends Subcommand {
 				.setName('list')
 				.setDescription('Affiche ou modifie la liste des inscrits')
 				.addUserOption((option) => option
-					.setName('légenfan')
-					.setDescription('Ajoute ou supprime le légenfan de la liste')
+					.setName('personne')
+					.setDescription('Ajoute ou supprime la personne de la liste')
 					.setRequired(false)))
 			.addSubcommand((subcommand) => subcommand
-				.setName('dramas')
-				.setDescription('Affiche ou modifie la liste des dramas')
+				.setName('conflicts')
+				.setDescription('Affiche ou modifie la liste des conflits')
 				.addUserOption((option) => option
-					.setName('légenfan1')
-					.setDescription('Ajoute ou supprime le légenfan de la liste')
+					.setName('personne1')
+					.setDescription('Ajoute ou supprime la personne de la liste')
 					.setRequired(false))
 				.addUserOption((option) => option
-					.setName('légenfan2')
-					.setDescription('Ajoute ou supprime le légenfan de la liste')
+					.setName('personne2')
+					.setDescription('Ajoute ou supprime la personne de la liste')
 					.setRequired(false)))
 			.addSubcommand((subcommand) => subcommand
 				.setName('delete')
@@ -68,13 +67,13 @@ export class SecretSantaAdminCommand extends Subcommand {
 		}
 
 		const list = await db.get<SecretSantaList>(Data.list, []);
-		const dramas = await db.get<SecretSantaDramas>(Data.dramas, []);
+		const conflicts = await db.get<SecretSantaConflicts>(Data.conflicts, []);
 
 		mappings = new Map();
 
 		do {
 			list.forEach((user) => {
-				mappings.set(user, this.getAttribution(mappings, list, dramas, user));
+				mappings.set(user, this.getAttribution(mappings, list, conflicts, user));
 			});
 		} while (Array.from(mappings.values()).includes(null));
 
@@ -93,7 +92,7 @@ export class SecretSantaAdminCommand extends Subcommand {
 	public async chatInputList(interaction: Subcommand.ChatInputCommandInteraction) {
 		await interaction.deferReply({ ephemeral: true });
 
-		const user = interaction.options.getUser('légenfan');
+		const user = interaction.options.getUser('personne');
 		const list = await db.get<SecretSantaList>(Data.list, []);
 
 		if (user === null) {
@@ -117,27 +116,27 @@ export class SecretSantaAdminCommand extends Subcommand {
 		}
 	}
 
-	public async chatInputDramas(interaction: Subcommand.ChatInputCommandInteraction) {
+	public async chatInputConflicts(interaction: Subcommand.ChatInputCommandInteraction) {
 		await interaction.deferReply({ ephemeral: true });
 
-		const user1 = interaction.options.getUser('légenfan1');
-		const user2 = interaction.options.getUser('légenfan2');
-		const dramas = await db.get<SecretSantaDramas>(Data.dramas, []);
+		const user1 = interaction.options.getUser('personne1');
+		const user2 = interaction.options.getUser('personne2');
+		const conflicts = await db.get<SecretSantaConflicts>(Data.conflicts, []);
 
 		if (user1 === null && user2 === null) {
-			const prettyDramas = dramas.map((drama) => `- ${userMention(drama[0])} <=> ${userMention(drama[1])}`);
-			const content = `:santa: Liste des personnes qui ne peuvent pas se matcher au Secret Santa :christmas_tree:\n${prettyDramas.join('\n')}`;
+			const prettyConflicts = conflicts.map((drama) => `- ${userMention(drama[0])} <=> ${userMention(drama[1])}`);
+			const content = `:santa: Liste des personnes qui ne peuvent pas se matcher au Secret Santa :christmas_tree:\n${prettyConflicts.join('\n')}`;
 
 			await interaction.editReply({ content });
 		} else if (user1 === null || user2 === null) {
 			await interaction.editReply({
-				content: 'Il faut deux personnes pour avoir un drama :angrypup:',
+				content: 'Il faut deux personnes pour avoir un conflit :pinching_hand:',
 			});
-		} else if (this.dramaExists(dramas, user1.id, user2.id)) {
-			dramas.splice(dramas.findIndex((d) => this.dramaEquals(d, user1.id, user2.id)), 1);
-			await db.set(Data.dramas, dramas);
+		} else if (this.dramaExists(conflicts, user1.id, user2.id)) {
+			conflicts.splice(conflicts.findIndex((d) => this.dramaEquals(d, user1.id, user2.id)), 1);
+			await db.set(Data.conflicts, conflicts);
 
-			const content = `:x: ${userMention(user1.id)} et ${userMention(user2.id)} ont été enlevés des dramas du Secret Santa`;
+			const content = `:x: ${userMention(user1.id)} et ${userMention(user2.id)} ont été enlevés des conflits du Secret Santa`;
 			await interaction.editReply({
 				content,
 				allowedMentions: { users: [user1.id, user2.id] },
@@ -145,9 +144,9 @@ export class SecretSantaAdminCommand extends Subcommand {
 		} else {
 			const newDrama: SecretSantaDrama = [user1.id, user2.id];
 
-			await db.set(Data.dramas, [...dramas, newDrama]);
+			await db.set(Data.conflicts, [...conflicts, newDrama]);
 
-			const content = `:white_check_mark: ${userMention(user1.id)} et ${userMention(user2.id)} ont été ajoutés aux dramas du Secret Santa`;
+			const content = `:white_check_mark: ${userMention(user1.id)} et ${userMention(user2.id)} ont été ajoutés aux conflits du Secret Santa`;
 			await interaction.editReply({
 				content,
 				allowedMentions: { users: [user1.id, user2.id] },
@@ -159,16 +158,18 @@ export class SecretSantaAdminCommand extends Subcommand {
 		await interaction.deferReply({ ephemeral: true });
 
 		await db.setMap(Data.generated, new Map());
+		await db.set(Data.list, []);
+		await db.set(Data.conflicts, []);
 
 		await interaction.editReply(':recycle: Le Secret Santa a été supprimé et devra être regénéré !');
 	}
 
 	private dramaExists(
-		dramas: SecretSantaDramas,
+		conflicts: SecretSantaConflicts,
 		user1: SecretSantaUser,
 		user2: SecretSantaUser,
 	): boolean {
-		return dramas.some((d) => this.dramaEquals(d, user1, user2));
+		return conflicts.some((d) => this.dramaEquals(d, user1, user2));
 	}
 
 	private dramaEquals(
@@ -183,7 +184,7 @@ export class SecretSantaAdminCommand extends Subcommand {
 	private getAttribution(
 		mappings: SecretSantaMappings,
 		list: SecretSantaList,
-		dramas: SecretSantaDramas,
+		conflicts: SecretSantaConflicts,
 		user: SecretSantaUser,
 	): SecretSantaUser | null {
 		const used = Array.from(mappings.values());
@@ -203,7 +204,7 @@ export class SecretSantaAdminCommand extends Subcommand {
 			result === null
 			|| user === result
 			|| used.includes(result)
-			|| this.dramaExists(dramas, user, result)
+			|| this.dramaExists(conflicts, user, result)
 		);
 
 		return result;
