@@ -8,7 +8,7 @@ import { GatewayIntentBits } from 'discord.js';
 import '@sapphire/plugin-editable-commands/register';
 
 const client = new SapphireClient({
-	intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages],
+	intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages, GatewayIntentBits.MessageContent],
 	loadMessageCommandListeners: true,
 	baseUserDirectory: __dirname,
 });

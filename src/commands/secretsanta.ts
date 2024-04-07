@@ -34,7 +34,7 @@ export class SecretSantaCommand extends Command {
 		const pair = mappings.get(interaction.user.id);
 
 		if (!pair) {
-			await interaction.editReply(`Tu n'es pas inscrit au Secret Santa :cry: \n${JSON.stringify(mappings)}`);
+			await interaction.editReply(`Tu n'es pas inscrit au Secret Santa :cry:`);
 		} else {
 			await interaction.editReply({
 				content: `Tu es le Secret Santa de ${userMention(pair)} ✨🎄🎅\n*Ne t'en fais pas, personne d'autre ne peut voir ce message*`,

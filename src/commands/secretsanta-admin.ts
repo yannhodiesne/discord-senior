@@ -4,11 +4,11 @@ import type { ApplicationCommandRegistry } from '@sapphire/framework';
 import { PermissionFlagsBits, userMention } from 'discord.js';
 
 import db from '../database';
-import type { SecretSantaUser, SecretSantaList, SecretSantaMappings, SecretSantaDramas, SecretSantaDrama } from '../types/secretsanta';
+import type { SecretSantaUser, SecretSantaList, SecretSantaMappings, SecretSantaConflicts, SecretSantaConflict } from '../types/secretsanta';
 
 const Data = {
 	list: 'secretsanta.list',
-	dramas: 'secretsanta.dramas',
+	conflicts: 'secretsanta.conflicts',
 	mappings: 'secretsanta.mappings',
 	generated: 'secretsanta.generated',
 };
@@ -20,7 +20,7 @@ const Data = {
 	subcommands: [
 		{ name: 'generate', chatInputRun: 'chatInputGenerate' },
 		{ name: 'list', chatInputRun: 'chatInputList' },
-		{ name: 'dramas', chatInputRun: 'chatInputDramas' },
+		{ name: 'conflicts', chatInputRun: 'chatInputConflicts' },
 		{ name: 'delete', chatInputRun: 'chatInputDelete' },
 	],
 })
@@ -42,8 +42,8 @@ export class SecretSantaAdminCommand extends Subcommand {
 					.setDescription('Ajoute ou supprime le légenfan de la liste')
 					.setRequired(false)))
 			.addSubcommand((subcommand) => subcommand
-				.setName('dramas')
-				.setDescription('Affiche ou modifie la liste des dramas')
+				.setName('conflicts')
+				.setDescription('Affiche ou modifie la liste des conflicts')
 				.addUserOption((option) => option
 					.setName('légenfan1')
 					.setDescription('Ajoute ou supprime le légenfan de la liste')
@@ -68,13 +68,13 @@ export class SecretSantaAdminCommand extends Subcommand {
 		}
 
 		const list = await db.get<SecretSantaList>(Data.list, []);
-		const dramas = await db.get<SecretSantaDramas>(Data.dramas, []);
+		const conflicts = await db.get<SecretSantaConflicts>(Data.conflicts, []);
 
 		mappings = new Map();
 
 		do {
 			list.forEach((user) => {
-				mappings.set(user, this.getAttribution(mappings, list, dramas, user));
+				mappings.set(user, this.getAttribution(mappings, list, conflicts, user));
 			});
 		} while (Array.from(mappings.values()).includes(null));
 
@@ -117,37 +117,37 @@ export class SecretSantaAdminCommand extends Subcommand {
 		}
 	}
 
-	public async chatInputDramas(interaction: Subcommand.ChatInputCommandInteraction) {
+	public async chatInputConflicts(interaction: Subcommand.ChatInputCommandInteraction) {
 		await interaction.deferReply({ ephemeral: true });
 
 		const user1 = interaction.options.getUser('légenfan1');
 		const user2 = interaction.options.getUser('légenfan2');
-		const dramas = await db.get<SecretSantaDramas>(Data.dramas, []);
+		const conflicts = await db.get<SecretSantaConflicts>(Data.conflicts, []);
 
 		if (user1 === null && user2 === null) {
-			const prettyDramas = dramas.map((drama) => `- ${userMention(drama[0])} <=> ${userMention(drama[1])}`);
-			const content = `:santa: Liste des personnes qui ne peuvent pas se matcher au Secret Santa :christmas_tree:\n${prettyDramas.join('\n')}`;
+			const prettyConflicts = conflicts.map((conflict) => `- ${userMention(conflict[0])} <=> ${userMention(conflict[1])}`);
+			const content = `:santa: Liste des personnes qui ne peuvent pas se matcher au Secret Santa :christmas_tree:\n${prettyConflicts.join('\n')}`;
 
 			await interaction.editReply({ content });
 		} else if (user1 === null || user2 === null) {
 			await interaction.editReply({
-				content: 'Il faut deux personnes pour avoir un drama :angrypup:',
+				content: 'Il faut deux personnes pour avoir un conflict :angrypup:',
 			});
-		} else if (this.dramaExists(dramas, user1.id, user2.id)) {
-			dramas.splice(dramas.findIndex((d) => this.dramaEquals(d, user1.id, user2.id)), 1);
-			await db.set(Data.dramas, dramas);
+		} else if (this.conflictExists(conflicts, user1.id, user2.id)) {
+			conflicts.splice(conflicts.findIndex((c) => this.conflictEquals(c, user1.id, user2.id)), 1);
+			await db.set(Data.conflicts, conflicts);
 
-			const content = `:x: ${userMention(user1.id)} et ${userMention(user2.id)} ont été enlevés des dramas du Secret Santa`;
+			const content = `:x: ${userMention(user1.id)} et ${userMention(user2.id)} ont été enlevés des conflicts du Secret Santa`;
 			await interaction.editReply({
 				content,
 				allowedMentions: { users: [user1.id, user2.id] },
 			});
 		} else {
-			const newDrama: SecretSantaDrama = [user1.id, user2.id];
+			const newConflict: SecretSantaConflict = [user1.id, user2.id];
 
-			await db.set(Data.dramas, [...dramas, newDrama]);
+			await db.set(Data.conflicts, [...conflicts, newConflict]);
 
-			const content = `:white_check_mark: ${userMention(user1.id)} et ${userMention(user2.id)} ont été ajoutés aux dramas du Secret Santa`;
+			const content = `:white_check_mark: ${userMention(user1.id)} et ${userMention(user2.id)} ont été ajoutés aux conflicts du Secret Santa`;
 			await interaction.editReply({
 				content,
 				allowedMentions: { users: [user1.id, user2.id] },
@@ -163,27 +163,27 @@ export class SecretSantaAdminCommand extends Subcommand {
 		await interaction.editReply(':recycle: Le Secret Santa a été supprimé et devra être regénéré !');
 	}
 
-	private dramaExists(
-		dramas: SecretSantaDramas,
+	private conflictExists(
+		conflicts: SecretSantaConflicts,
 		user1: SecretSantaUser,
 		user2: SecretSantaUser,
 	): boolean {
-		return dramas.some((d) => this.dramaEquals(d, user1, user2));
+		return conflicts.some((d) => this.conflictEquals(d, user1, user2));
 	}
 
-	private dramaEquals(
-		drama: SecretSantaDrama,
+	private conflictEquals(
+		conflict: SecretSantaConflict,
 		user1: SecretSantaUser,
 		user2: SecretSantaUser,
 	): boolean {
-		return (drama[0] === user1 && drama[1] === user2)
-			|| (drama[0] === user2 && drama[1] === user1);
+		return (conflict[0] === user1 && conflict[1] === user2)
+			|| (conflict[0] === user2 && conflict[1] === user1);
 	}
 
 	private getAttribution(
 		mappings: SecretSantaMappings,
 		list: SecretSantaList,
-		dramas: SecretSantaDramas,
+		conflicts: SecretSantaConflicts,
 		user: SecretSantaUser,
 	): SecretSantaUser | null {
 		const used = Array.from(mappings.values());
@@ -203,7 +203,7 @@ export class SecretSantaAdminCommand extends Subcommand {
 			result === null
 			|| user === result
 			|| used.includes(result)
-			|| this.dramaExists(dramas, user, result)
+			|| this.conflictExists(conflicts, user, result)
 		);
 
 		return result;
